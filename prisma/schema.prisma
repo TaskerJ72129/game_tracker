@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String   @unique
+  totalXp   Int      @default(0)
+
+  xpByGenre UserXP[]
+  xpEvents  XPEvent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Genre {
+  id   String @id @default(cuid())
+  name String @unique
+
+  users UserXP[]
+}
+
+model UserXP {
+  id      String @id @default(cuid())
+  userId  String
+  genreId String
+  xp      Int    @default(0)
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  genre  Genre  @relation(fields: [genreId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, genreId])
+}
+
+model XPEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  genreId   String?
+  amount    Int
+  reason    String
+
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}

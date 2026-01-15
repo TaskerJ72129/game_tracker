@@ -1,7 +1,7 @@
 import { prisma } from "lib/prisma";
 
 async function main() {
-  const genres = ["RPG", "FPS", "Strategy", "Puzzle", "Simulation"];
+  const genres = ["RPG", "FPS", "Strategy", "Puzzle"];
 
   for (const name of genres) {
     await prisma.genre.upsert({
@@ -11,14 +11,13 @@ async function main() {
     });
   }
 
-  console.log("Genres seeded successfully");
+  await prisma.user.create({
+    data: { username: "testuser" },
+  });
+
+  console.log("Seed complete");
 }
 
 main()
-  .catch((e) => {
-    console.error("Error seeding database:", e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+  .catch(console.error)
+  .finally(() => prisma.$disconnect());

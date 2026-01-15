@@ -1,50 +1,34 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../generated/prisma"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider  = "postgresql"
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  username  String   @unique
-  totalXp   Int      @default(0)
-
-  xpByGenre UserXP[]
-  xpEvents  XPEvent[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id       Int       @id @default(autoincrement())
+  username String    @unique
+  xp       Int       @default(0)
+  genreXp  GenreXP[]
 }
 
 model Genre {
-  id   String @id @default(cuid())
-  name String @unique
-
-  users UserXP[]
+  id      Int       @id @default(autoincrement())
+  name    String    @unique
+  genreXp GenreXP[]
 }
 
-model UserXP {
-  id      String @id @default(cuid())
-  userId  String
-  genreId String
-  xp      Int    @default(0)
+model GenreXP {
+  id Int @id @default(autoincrement())
+  xp Int @default(0)
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  genre  Genre  @relation(fields: [genreId], references: [id], onDelete: Cascade)
+  userId  Int
+  genreId Int
+
+  user  User  @relation(fields: [userId], references: [id])
+  genre Genre @relation(fields: [genreId], references: [id])
 
   @@unique([userId, genreId])
-}
-
-model XPEvent {
-  id        String   @id @default(cuid())
-  userId    String
-  genreId   String?
-  amount    Int
-  reason    String
-
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
 }

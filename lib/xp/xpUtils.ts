@@ -11,7 +11,12 @@ export function calculateLevel(
   level: number;
   currentXP: number;
   nextLevelXP: number;
+  progress: number;
 } {
+  if (config.base <= 0) {
+    throw new Error("XP base must be greater than 0");
+  }
+
   let level = 1;
   let remainingXP = totalXP;
 
@@ -20,10 +25,13 @@ export function calculateLevel(
     level++;
   }
 
+  const nextLevelXP = xpToNextLevel(level, config);
+
   return {
     level,
     currentXP: remainingXP,
-    nextLevelXP: xpToNextLevel(level, config),
+    nextLevelXP,
+    progress: remainingXP / nextLevelXP,
   };
 }
 
@@ -34,10 +42,13 @@ export function splitGenreXP(
   if (genres.length === 0) return {};
 
   const xpPerGenre = Math.floor(totalXP / genres.length);
+  let remainder = totalXP % genres.length;
+
   const result: Record<string, number> = {};
 
   for (const genre of genres) {
-    result[genre] = xpPerGenre;
+    result[genre] = xpPerGenre + (remainder > 0 ? 1 : 0);
+    remainder--;
   }
 
   return result;

@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
 }
 
 model User {
@@ -21,14 +21,12 @@ model Genre {
 }
 
 model GenreXP {
-  id Int @id @default(autoincrement())
-  xp Int @default(0)
-
+  id      Int   @id @default(autoincrement())
+  xp      Int   @default(0)
   userId  Int
   genreId Int
-
-  user  User  @relation(fields: [userId], references: [id])
-  genre Genre @relation(fields: [genreId], references: [id])
+  genre   Genre @relation(fields: [genreId], references: [id])
+  user    User  @relation(fields: [userId], references: [id])
 
   @@unique([userId, genreId])
 }

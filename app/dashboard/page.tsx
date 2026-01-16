@@ -22,7 +22,7 @@ export default function DashboardPage() {
     <main className="p-8 max-w-3xl mx-auto space-y-8">
       {/* User Info */}
       <section>
-        <h1 className="text-3xl font-bold">{mockUserXP.username}</h1>
+        <h1 className="text-4xl font-bold">{mockUserXP.username}</h1>
         <p className="text-gray-500">Level {overallLevel.level}</p>
 
         <div className="mt-4">

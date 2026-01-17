@@ -1,62 +1,44 @@
 import { mockUserXP, mockEarnedXP } from "./mockUserXP";
 import { calculateLevel } from "@/lib/xp/xpUtils";
-import { OVERALL_XP, GENRE_XP } from "@/lib/xp/xpConfig";
+import { GENRE_XP } from "@/lib/xp/xpConfig";
 
 export default function DashboardPage() {
-  // Apply overall XP
-  const totalOverallXP = mockUserXP.overall + mockEarnedXP.overall;
-  const overallLevel = calculateLevel(totalOverallXP, OVERALL_XP);
+  const updatedGenres: Record<string, number> = {
+    ...mockUserXP.genres,
+  };
 
-  // Apply genre XP
-  const updatedGenres: Record<string, number> = { ...mockUserXP.genres };
   for (const genre in mockEarnedXP.genres) {
-    updatedGenres[genre] = (updatedGenres[genre] ?? 0) + mockEarnedXP.genres[genre];
-  }
-
-  const genreLevels: Record<string, ReturnType<typeof calculateLevel>> = {};
-  for (const genre in updatedGenres) {
-    genreLevels[genre] = calculateLevel(updatedGenres[genre], GENRE_XP);
+    updatedGenres[genre] =
+      (updatedGenres[genre] ?? 0) +
+      mockEarnedXP.genres[genre];
   }
 
   return (
     <main className="p-8 max-w-3xl mx-auto space-y-8">
-      {/* User Info */}
       <section>
-        <h1 className="text-4xl font-bold">{mockUserXP.username}</h1>
-        <p className="text-gray-500">Level {overallLevel.level}</p>
-
-        <div className="mt-4">
-          <div className="h-4 bg-gray-200 rounded">
-            <div
-              className="h-4 bg-blue-600 rounded"
-              style={{ width: `${overallLevel.progress * 100}%` }}
-            />
-          </div>
-          <p className="text-sm mt-1">
-            {overallLevel.currentXP} / {overallLevel.nextLevelXP} XP
-          </p>
-        </div>
+        <h1 className="text-3xl font-bold">Genre Levels</h1>
       </section>
 
-      {/* Genre Levels */}
-      <section>
-        <h2 className="text-xl font-semibold mb-4">Genre Levels</h2>
-        <div className="space-y-4">
-          {Object.entries(genreLevels).map(([genre, data]) => (
+      <section className="space-y-4">
+        {Object.entries(updatedGenres).map(([genre, xp]) => {
+          const data = calculateLevel(xp, GENRE_XP);
+
+          return (
             <div key={genre}>
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between text-sm mb-1">
                 <span>{genre}</span>
                 <span>Lv {data.level}</span>
               </div>
-              <div className="h-3 bg-gray-200 rounded mt-1">
+
+              <div className="h-3 bg-zinc-800 rounded">
                 <div
-                  className="h-3 bg-green-600 rounded"
+                  className="h-3 bg-emerald-600 rounded"
                   style={{ width: `${data.progress * 100}%` }}
                 />
               </div>
             </div>
-          ))}
-        </div>
+          );
+        })}
       </section>
     </main>
   );

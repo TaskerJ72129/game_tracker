@@ -1,17 +1,12 @@
 "use client";
 
 import XPProgressBar from "./xpProgressBar";
-import { calculateLevel } from "@/lib/xp/xpUtils";
-import { OVERALL_XP } from "@/lib/xp/xpConfig";
 import Link from "next/link";
+import { useUserXP } from "@/app/context/userXpContext";
 
-type Props = {
-  username: string;
-  totalXP: number;
-};
-
-export default function UserHeader({ username, totalXP }: Props) {
-  const overall = calculateLevel(totalXP, OVERALL_XP);
+export default function UserHeader() {
+  const { overallLevel } = useUserXP();
+  const username = "JT"; // replace with context/auth username later
 
   return (
     <header className="sticky top-0 z-50 bg-zinc-950 border-b border-zinc-800">
@@ -21,12 +16,12 @@ export default function UserHeader({ username, totalXP }: Props) {
           GameTracker
         </Link>
 
-        {/* XP */}
+        {/* XP bar */}
         <div className="w-64">
           <XPProgressBar
-            level={overall.level}
-            currentXP={overall.currentXP}
-            nextLevelXP={overall.nextLevelXP}
+            level={overallLevel.level}
+            currentXP={overallLevel.currentXP}
+            nextLevelXP={overallLevel.nextLevelXP}
           />
         </div>
 

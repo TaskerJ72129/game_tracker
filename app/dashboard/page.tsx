@@ -23,8 +23,35 @@ function EmptyGenreState() {
   );
 }
 
+function XPHistory({ history }: { history: any[] }) {
+  if (history.length === 0) return null;
+
+  return (
+    <section className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 space-y-4">
+      <h2 className="text-xl font-semibold text-white">
+        Recent XP
+      </h2>
+
+      <ul className="space-y-2">
+        {history.slice(0, 5).map((event) => (
+          <li
+            key={event.id}
+            className="flex justify-between text-sm text-zinc-300"
+          >
+            <span>{event.reason}</span>
+            <span className="text-emerald-400">
+              +{event.amount} XP
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+
 export default function DashboardPage() {
-  const { genreXP } = useUserXP();
+  const { genreXP, xpHistory  } = useUserXP();
 
   const sortedGenres = Object.entries(genreXP)
     .map(([genre, xp]) => {
@@ -76,6 +103,9 @@ export default function DashboardPage() {
           </section>
         )}
       </section>
+      {/* XP History */}
+      <XPHistory history={xpHistory} />
+      
     </main>
   );
 }

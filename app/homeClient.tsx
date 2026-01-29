@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUserXP } from "@/app/context/userXpContext";
 import GameCard from "@/components/gameCard";
 import { Game } from "@/types/game";
@@ -12,17 +12,27 @@ type Props = {
 
 export default function HomeClient({ initialGames }: Props) {
   const [games, setGames] = useState(initialGames);
-  const { addXP } = useUserXP();
+  const { addXP, completedGameIds, markGameCompleted } = useUserXP();
+    
+	useEffect(() => {
+		setGames((prev) =>
+			prev.map((g) =>
+				completedGameIds.has(g.id) ? { ...g, completed: true } : g
+			)
+		);
+	}, [completedGameIds]);
+
 
   function handleComplete(game: Game) {
-    if (game.completed) return;
+    if (completedGameIds.has(game.id)) return;
 
     setGames((prev) =>
       prev.map((g) =>
         g.id === game.id ? { ...g, completed: true } : g
       )
     );
-
+      
+    markGameCompleted(game.id);
     addXP(XP_REWARDS.COMPLETE_GAME, game.genres);
   }
 

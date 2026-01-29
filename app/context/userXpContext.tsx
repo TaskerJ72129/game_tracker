@@ -29,6 +29,9 @@ interface UserXPContextType {
 
   xpHistory: XPEvent[];
   clearXPHistory: () => void;
+
+  completedGameIds: Set<string>;
+  markGameCompleted: (gameId: string) => void;
 }
 
 const UserXPContext = createContext<UserXPContextType | undefined>(undefined);
@@ -36,8 +39,14 @@ const UserXPContext = createContext<UserXPContextType | undefined>(undefined);
 export const UserXPProvider = ({ children }: { children: ReactNode }) => {
   const [totalXP, setTotalXP] = useState(0);
   const [genreXP, setGenreXP] = useState<GenreXP>({});
-
+  const [completedGameIds, setCompletedGameIds] = useState<Set<string>>(
+    () => new Set()
+  );
   const [xpHistory, setXpHistory] = useState<XPEvent[]>([]);
+
+  function markGameCompleted(gameId: string) {
+    setCompletedGameIds((prev) => new Set(prev).add(gameId));
+  }
 
   function addXP(amount: number, genres: string[] = []) {
     if (amount <= 0) return;
@@ -79,7 +88,8 @@ export const UserXPProvider = ({ children }: { children: ReactNode }) => {
         overallLevel,
         genreLevels,
         addXP,
-
+        completedGameIds,
+        markGameCompleted,
         xpHistory,
         clearXPHistory,
       }}

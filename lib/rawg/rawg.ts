@@ -1,26 +1,26 @@
+import { Game } from "@/types/game";
+
 const RAWG_BASE_URL = "https://api.rawg.io/api";
 
-export async function rawgFetch<T>(
-  endpoint: string,
-  params: Record<string, string | number> = {}
-): Promise<T> {
-  const searchParams = new URLSearchParams({
-    key: process.env.RAWG_API_KEY!,
-    ...Object.fromEntries(
-      Object.entries(params).map(([k, v]) => [k, String(v)])
-    ),
-  });
-
+export async function fetchPopularGames(): Promise<Game[]> {
   const res = await fetch(
-    `${RAWG_BASE_URL}${endpoint}?${searchParams.toString()}`,
+    `${RAWG_BASE_URL}/games?key=${process.env.RAWG_API_KEY}&ordering=-rating&page_size=20`,
     {
-      next: { revalidate: 60 }, // cache for 1 min (optional)
+      // Important: tell Next this can be cached
+      next: { revalidate: 3600 }, // revalidate every hour
     }
   );
 
   if (!res.ok) {
-    throw new Error("RAWG API request failed");
+    throw new Error("Failed to fetch games from RAWG");
   }
 
-  return res.json();
+  const data = await res.json();
+
+  return data.results.map((game: any) => ({
+    id: String(game.id),
+    title: game.name,
+    genres: game.genres.map((g: any) => g.name),
+    completed: false,
+  }));
 }

@@ -14,7 +14,8 @@ type GenreXP = Record<string, number>;
 type XPEvent = {
   id: string;
   amount: number;
-  genres: string[];
+  source: string;
+  gameTitle?: string;
   timestamp: number;
 };
 
@@ -25,7 +26,12 @@ interface UserXPContextType {
   overallLevel: ReturnType<typeof calculateLevel>;
   genreLevels: Record<string, ReturnType<typeof calculateLevel>>;
 
-  addXP: (amount: number, genres?: string[]) => void;
+  addXP: (
+    amount: number,
+    source: string,
+    genres?: string[],
+    gameTitle?: string
+  ) => void;
 
   xpHistory: XPEvent[];
   clearXPHistory: () => void;
@@ -33,6 +39,7 @@ interface UserXPContextType {
   completedGameIds: Set<string>;
   markGameCompleted: (gameId: string) => void;
 }
+
 
 const UserXPContext = createContext<UserXPContextType | undefined>(undefined);
 
@@ -48,26 +55,36 @@ export const UserXPProvider = ({ children }: { children: ReactNode }) => {
     setCompletedGameIds((prev) => new Set(prev).add(gameId));
   }
 
-  function addXP(amount: number, genres: string[] = []) {
-    if (amount <= 0) return;
 
-    // update totals
-    setTotalXP((prev) => prev + amount);
+function addXP(
+  amount: number,
+  source: string,
+  genres: string[] = [],
+  gameTitle?: string
+) {
+  if (amount <= 0) return;
 
+  // totals
+  setTotalXP((prev) => prev + amount);
+
+  // genre XP
+  if (genres.length > 0) {
     const earnedGenreXP = splitGenreXP(amount, genres);
     setGenreXP((prev) => applyGenreXP(prev, earnedGenreXP));
-
-    // record history event
-    setXpHistory((prev) => [
-      {
-        id: crypto.randomUUID(),
-        amount,
-        genres,
-        timestamp: Date.now(),
-      },
-      ...prev, // newest first
-    ]);
   }
+
+  // history
+  setXpHistory((prev) => [
+    {
+      id: crypto.randomUUID(),
+      amount,
+      source,
+      gameTitle,
+      timestamp: Date.now(),
+    },
+    ...prev,
+  ]);
+}
 
   const overallLevel = calculateLevel(totalXP, OVERALL_XP);
 

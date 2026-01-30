@@ -3,6 +3,7 @@
 import { calculateLevel } from "@/lib/xp/xpUtils";
 import { GENRE_XP } from "@/lib/xp/xpConfig";
 import { useUserXP } from "@/app/context/userXpContext";
+import type { XPState, XPEvent, GenreXPMap } from "@/types/xp";
 
 function EmptyGenreState() {
   return (
@@ -23,7 +24,7 @@ function EmptyGenreState() {
   );
 }
 
-function XPHistory({ history }: { history: any[] }) {
+function XPHistory({ history }: { history: XPEvent[] }) {
   if (history.length === 0) return null;
 
   return (
@@ -33,17 +34,23 @@ function XPHistory({ history }: { history: any[] }) {
       </h2>
 
       <ul className="space-y-2">
-        {history.slice(0, 5).map((event) => (
-          <li
-            key={event.id}
-            className="flex justify-between text-sm text-zinc-300"
-          >
-            <span>{event.reason}</span>
-            <span className="text-emerald-400">
-              +{event.amount} XP
-            </span>
-          </li>
-        ))}
+        {history.slice(0, 5).map((event) => {
+          const label = event.gameTitle
+            ? `${event.source}: ${event.gameTitle}`
+            : event.source;
+
+          return (
+            <li
+              key={event.id}
+              className="flex justify-between text-sm text-zinc-300"
+            >
+              <span>{label}</span>
+              <span className="text-emerald-400">
+                +{event.amount} XP
+              </span>
+            </li>
+          );
+        })}
       </ul>
     </section>
   );

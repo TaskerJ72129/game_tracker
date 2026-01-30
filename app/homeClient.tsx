@@ -33,7 +33,12 @@ export default function HomeClient({ initialGames }: Props) {
     );
       
     markGameCompleted(game.id);
-    addXP(XP_REWARDS.COMPLETE_GAME, game.genres);
+    addXP({
+      amount: XP_REWARDS.COMPLETE_GAME,
+      genres: game.genres,
+      source: "Completed Game",
+      gameTitle: game.title,
+    });
   }
 
   return (

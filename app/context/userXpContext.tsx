@@ -19,6 +19,13 @@ type XPEvent = {
   timestamp: number;
 };
 
+type AddXPParams = {
+  amount: number;
+  genres?: string[];
+  source: string;
+  gameTitle?: string;
+};
+
 interface UserXPContextType {
   totalXP: number;
   genreXP: GenreXP;
@@ -26,12 +33,7 @@ interface UserXPContextType {
   overallLevel: ReturnType<typeof calculateLevel>;
   genreLevels: Record<string, ReturnType<typeof calculateLevel>>;
 
-  addXP: (
-    amount: number,
-    source: string,
-    genres?: string[],
-    gameTitle?: string
-  ) => void;
+  addXP: (params: AddXPParams) => void;
 
   xpHistory: XPEvent[];
   clearXPHistory: () => void;
@@ -55,13 +57,8 @@ export const UserXPProvider = ({ children }: { children: ReactNode }) => {
     setCompletedGameIds((prev) => new Set(prev).add(gameId));
   }
 
-
-function addXP(
-  amount: number,
-  source: string,
-  genres: string[] = [],
-  gameTitle?: string
-) {
+function addXP({ amount, genres = [], source, gameTitle }: AddXPParams) {
+  console.log("addXP called with:", { amount, genres, source, gameTitle });
   if (amount <= 0) return;
 
   // totals

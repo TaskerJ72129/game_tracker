@@ -27,7 +27,7 @@ export async function GET() {
 
   const data = await res.json();
 
-  // Normalize RAWG data into YOUR Game shape
+  // Normalize RAWG data
   const games = data.results.map((game: any) => ({
     id: String(game.id),
     title: game.name,

@@ -2,22 +2,56 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
 export default function AuthForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const router = useRouter();
 
   async function signIn() {
     setLoading(true);
-    await supabase.auth.signInWithPassword({ email, password });
+    setError(null);
+    setMessage(null);
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
     setLoading(false);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    router.push("/");
+    router.refresh();
   }
 
   async function signUp() {
     setLoading(true);
-    await supabase.auth.signUp({ email, password });
+    setError(null);
+    setMessage(null);
+
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
     setLoading(false);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setMessage("Check your email to confirm your account.");
   }
 
   return (
@@ -39,12 +73,20 @@ export default function AuthForm() {
         onChange={(e) => setPassword(e.target.value)}
       />
 
+      {error && (
+        <p className="text-sm text-red-400">{error}</p>
+      )}
+
+      {message && (
+        <p className="text-sm text-emerald-400">{message}</p>
+      )}
+
       <button
         onClick={signIn}
         disabled={loading}
         className="w-full bg-emerald-600 text-black py-2 rounded"
       >
-        Sign In
+        {loading ? "Signing in..." : "Sign In"}
       </button>
 
       <button
@@ -52,7 +94,7 @@ export default function AuthForm() {
         disabled={loading}
         className="w-full border border-zinc-700 text-white py-2 rounded"
       >
-        Sign Up
+        {loading ? "Signing up..." : "Sign Up"}
       </button>
     </div>
   );

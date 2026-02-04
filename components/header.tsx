@@ -43,14 +43,16 @@ export default function UserHeader() {
           GameTracker
         </Link>
 
-        {/* XP bar */}
-        <div className="w-64">
-          <XPProgressBar
-            level={overallLevel.level}
-            currentXP={overallLevel.currentXP}
-            nextLevelXP={overallLevel.nextLevelXP}
-          />
-        </div>
+        {/* XP bar only if logged in */}
+        {session && (
+          <div className="w-64">
+            <XPProgressBar
+              level={overallLevel.level}
+              currentXP={overallLevel.currentXP}
+              nextLevelXP={overallLevel.nextLevelXP}
+            />
+          </div>
+        )}
 
         {/* Auth / Profile */}
         <div className="flex items-center gap-4">

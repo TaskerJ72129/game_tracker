@@ -16,3 +16,16 @@ export async function createSupabaseServerClient() {
     }
   );
 }
+
+/**
+ * Helper to get the logged-in user's ID from the Supabase session
+ */
+export async function getUserIdFromSession() {
+  const supabase = await createSupabaseServerClient();
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  return session?.user.id ?? null;
+}

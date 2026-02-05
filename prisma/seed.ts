@@ -1,4 +1,4 @@
-import { prisma } from "lib/prisma";
+import { prisma } from "@/lib/prisma/client";
 
 async function main() {
   const genres = ["RPG", "FPS", "Strategy", "Puzzle"];

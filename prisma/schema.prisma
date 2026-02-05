@@ -8,10 +8,11 @@ datasource db {
 }
 
 model User {
-  id       Int       @id @default(autoincrement())
-  username String    @unique
-  xp       Int       @default(0)
+  id       String     @id @default(uuid())
+  username String     @unique
+  xp       Int        @default(0)
   genreXp  GenreXP[]
+  gameProgress UserGameProgress[]
 }
 
 model Genre {
@@ -23,10 +24,32 @@ model Genre {
 model GenreXP {
   id      Int   @id @default(autoincrement())
   xp      Int   @default(0)
-  userId  Int
+  userId  String
   genreId Int
   genre   Genre @relation(fields: [genreId], references: [id])
   user    User  @relation(fields: [userId], references: [id])
 
   @@unique([userId, genreId])
+}
+
+model Game {
+  id        Int       @id @default(autoincrement())
+  rawgId    Int       @unique
+  title     String
+  genres    String[]
+  released  DateTime?
+  createdAt DateTime  @default(now())
+  progress  UserGameProgress[]
+}
+
+model UserGameProgress {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  gameId    Int
+  completed Boolean  @default(false)
+  completedAt DateTime?
+  user      User     @relation(fields: [userId], references: [id])
+  game      Game     @relation(fields: [gameId], references: [id])
+
+  @@unique([userId, gameId])
 }

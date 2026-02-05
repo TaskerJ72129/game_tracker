@@ -1,4 +1,5 @@
 import { UserXPProvider } from "@/app/context/userXpContext";
+import { AuthProvider } from "@/app/context/authContext";
 import UserHeader from "@/components/header";
 import "./globals.css";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -10,10 +11,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <UserXPProvider>
-          <UserHeader />
-          <div className="pt-20">{children}</div>
-        </UserXPProvider>
+        <AuthProvider>
+          <UserXPProvider>
+            <UserHeader />
+            <div className="pt-20">{children}</div>
+          </UserXPProvider>
+        </AuthProvider>
       </body>
     </html>
   );

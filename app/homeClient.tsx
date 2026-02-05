@@ -13,32 +13,35 @@ type Props = {
 export default function HomeClient({ initialGames }: Props) {
   const [games, setGames] = useState(initialGames);
   const { addXP, completedGameIds, markGameCompleted } = useUserXP();
-    
-	useEffect(() => {
-		setGames((prev) =>
-			prev.map((g) =>
-				completedGameIds.has(g.id) ? { ...g, completed: true } : g
-			)
-		);
-	}, [completedGameIds]);
 
-
-  function handleComplete(game: Game) {
-    if (completedGameIds.has(game.id)) return;
-
+  // update local game list when completedGameIds changes
+  useEffect(() => {
     setGames((prev) =>
       prev.map((g) =>
-        g.id === game.id ? { ...g, completed: true } : g
+        completedGameIds.has(g.rawgId) ? { ...g, completed: true } : g
       )
     );
-      
-    markGameCompleted(game.id);
+  }, [completedGameIds]);
+
+  // handle marking a game complete
+  async function handleComplete(game: Game) {
+  if (completedGameIds.has(game.rawgId)) return;
+
+  // optimistic UI
+  markGameCompleted(game);
+
+    // add XP
     addXP({
       amount: XP_REWARDS.COMPLETE_GAME,
       genres: game.genres,
       source: "Completed Game",
       gameTitle: game.title,
     });
+
+    // optionally update UI immediately
+    setGames((prev) =>
+      prev.map((g) => (g.rawgId === game.rawgId ? { ...g, completed: true } : g))
+    );
   }
 
   return (
@@ -46,7 +49,7 @@ export default function HomeClient({ initialGames }: Props) {
       <section className="grid gap-4 sm:grid-cols-2">
         {games.map((game) => (
           <GameCard
-            key={game.id}
+            key={game.rawgId}
             game={game}
             onComplete={() => handleComplete(game)}
           />

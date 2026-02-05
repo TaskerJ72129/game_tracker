@@ -33,7 +33,7 @@ model GenreXP {
 }
 
 model Game {
-  id        Int       @id @default(autoincrement())
+  id        String    @id
   rawgId    Int       @unique
   title     String
   genres    String[]
@@ -45,7 +45,7 @@ model Game {
 model UserGameProgress {
   id        Int      @id @default(autoincrement())
   userId    String
-  gameId    Int
+  gameId    String
   completed Boolean  @default(false)
   completedAt DateTime?
   user      User     @relation(fields: [userId], references: [id])

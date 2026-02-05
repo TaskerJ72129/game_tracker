@@ -23,9 +23,13 @@ export async function createSupabaseServerClient() {
 export async function getUserIdFromSession() {
   const supabase = await createSupabaseServerClient();
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  // getUser authenticates against Supabase Auth
+  const { data: { user }, error } = await supabase.auth.getUser();
 
-  return session?.user.id ?? null;
+  if (error) {
+    console.error("Error fetching user:", error);
+    return null;
+  }
+
+  return user?.id ?? null;
 }

@@ -10,7 +10,7 @@ function EmptyGenreState() {
   return (
     <div className="border border-dashed border-zinc-700 rounded-lg p-6 text-center space-y-3">
       <h2 className="text-lg font-semibold text-white">
-        No genre levels yet
+        No genre levels yet.
       </h2>
 
       <p className="text-sm text-zinc-400">

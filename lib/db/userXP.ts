@@ -1,3 +1,4 @@
+// lib/db/userXP.ts
 import { prisma } from "@/lib/prisma/client";
 
 // get total XP for a user
@@ -28,6 +29,7 @@ export async function getUserCompletedGames(userId: string) {
 
 // add XP to user
 export async function addXPToUser(userId: string, amount: number, genres: string[] = []) {
+  console.log("Adding XP:", { userId, amount, genres });
   // increment total XP
   await prisma.user.update({
     where: { id: userId },

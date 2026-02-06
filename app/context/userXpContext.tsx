@@ -83,7 +83,14 @@ export const UserXPProvider = ({ children }: { children: ReactNode }) => {
     try {
       await fetch("/api/xp/add", {
         method: "POST",
-        body: JSON.stringify({ amount, genres, source, gameTitle }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.id,
+          amount,
+          genres,
+          source,
+          gameTitle,
+        }),
       });
 
       setTotalXP(prev => prev + amount);

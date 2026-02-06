@@ -29,7 +29,7 @@ export async function GET() {
 
   // Normalize RAWG data
   const games = data.results.map((game: any) => ({
-    // id: String(game.id),
+    id: String(game.id),
     rawgId: game.id,
     title: game.name,
     genres: game.genres.map((g: any) => g.name),

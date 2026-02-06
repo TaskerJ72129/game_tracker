@@ -45,21 +45,26 @@ export const UserXPProvider = ({ children }: { children: ReactNode }) => {
   const [xpHistory, setXpHistory] = useState<XPEvent[]>([]);
 
   // fetch XP and completed games on login
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     if (!user) return;
 
     async function fetchData() {
       try {
-        const [xpRes, completedRes] = await Promise.all([
+        const [xpRes, genreRes, completedRes] = await Promise.all([
           fetch(`/api/xp/total?userId=${user.id}`).then(r => r.json()),
+          fetch(`/api/xp/genre?userId=${user.id}`).then(r => r.json()),
           fetch(`/api/game/complete?userId=${user.id}`).then(r => r.json())
         ]);
 
         setTotalXP(xpRes.totalXP ?? 0);
-        setGenreXP(xpRes.genreXP ?? {});
-        setCompletedGameIds(new Set(completedRes.completedGameIds ?? [])); // DB ids
+        setGenreXP(genreRes.genreXP ?? {});
+        setCompletedGameIds(new Set(completedRes.completedGameIds ?? []));
       } catch (err) {
         console.error("Error fetching XP or completed games", err);
+      } finally {
+        setLoading(false);
       }
     }
 

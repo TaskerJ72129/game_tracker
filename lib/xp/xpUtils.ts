@@ -1,3 +1,4 @@
+// lib/xp/xpUtils.ts
 import type { XPConfig } from "./xpConfig";
 
 export function xpToNextLevel(level: number, config: XPConfig): number {

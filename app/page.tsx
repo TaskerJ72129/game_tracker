@@ -1,38 +1,21 @@
-"use client";
+import { fetchPopularGames } from "@/lib/rawg/rawg";
+import HomeClient from "./homeClient";
+import { redirect } from "next/navigation";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-import { useUserXP } from "@/app/context/userXpContext";
-import GameCard from "@/components/gameCard";
-import { Game } from "@/types/game";
-import { XP_REWARDS } from "@/lib/xp/xpConfig";
-import { useState } from "react";
+export default async function HomePage() {
+  const games = await fetchPopularGames();
 
-const initialGames: Game[] = [
-  { id: "1", title: "Baldur’s Gate 3", genres: ["RPG", "Strategy"], completed: false },
-  { id: "2", title: "DOOM Eternal", genres: ["FPS"], completed: false },
-  { id: "3", title: "Stardew Valley", genres: ["RPG", "Simulation"], completed: true },
-];
+  { /* redirect to login if user not logged in */ }
+  const supabase = await createSupabaseServerClient();
 
-export default function HomePage() {
-  const [games, setGames] = useState(initialGames);
-  const { addXP } = useUserXP();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  function handleComplete(game: Game) {
-    if (game.completed) return;
-
-    setGames((prev) =>
-      prev.map((g) => (g.id === game.id ? { ...g, completed: true } : g))
-    );
-
-    addXP(XP_REWARDS.COMPLETE_GAME, game.genres);
+  if (!session) {
+    redirect("/login");
   }
 
-  return (
-    <main className="max-w-4xl mx-auto p-6 space-y-6">
-      <section className="grid gap-4 sm:grid-cols-2">
-        {games.map((game) => (
-          <GameCard key={game.id} game={game} onComplete={() => handleComplete(game)} />
-        ))}
-      </section>
-    </main>
-  );
+  return <HomeClient initialGames={games} />;
 }

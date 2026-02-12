@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { calculateLevel, splitGenreXP, applyGenreXP } from "@/lib/xp/xpUtils";
-import { OVERALL_XP, GENRE_XP, XP_REWARDS } from "@/lib/xp/xpConfig";
+import { OVERALL_XP, GENRE_XP } from "@/lib/xp/xpConfig";
 import { useUser } from "@/app/context/authContext";
 import type { Game } from "@/types/game";
 
@@ -31,7 +31,7 @@ interface UserXPContextType {
   addXP: (params: AddXPParams) => Promise<void>;
   xpHistory: XPEvent[];
   clearXPHistory: () => void;
-  completedGameIds: Set<string>; // use DB id (string)
+  completedGameIds: Set<string>;
   markGameCompleted: (game: Game) => Promise<void>;
 }
 
@@ -39,14 +39,13 @@ const UserXPContext = createContext<UserXPContextType | undefined>(undefined);
 
 export const UserXPProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useUser();
+
   const [totalXP, setTotalXP] = useState(0);
   const [genreXP, setGenreXP] = useState<GenreXP>({});
-  const [completedGameIds, setCompletedGameIds] = useState<Set<string>>(() => new Set());
+  const [completedGameIds, setCompletedGameIds] = useState<Set<string>>(new Set());
   const [xpHistory, setXpHistory] = useState<XPEvent[]>([]);
 
-  // fetch XP and completed games on login
-  const [loading, setLoading] = useState(true);
-
+  // initial fetch
   useEffect(() => {
     if (!user) return;
 
@@ -63,8 +62,6 @@ export const UserXPProvider = ({ children }: { children: ReactNode }) => {
         setCompletedGameIds(new Set(completedRes.completedGameIds ?? []));
       } catch (err) {
         console.error("Error fetching XP or completed games", err);
-      } finally {
-        setLoading(false);
       }
     }
 
@@ -82,11 +79,26 @@ export const UserXPProvider = ({ children }: { children: ReactNode }) => {
     setXpHistory([]);
   }
 
+  // OPTIMISTIC XP UPDATE
   async function addXP({ amount, genres = [], source, gameTitle }: AddXPParams) {
     if (!user || amount <= 0) return;
 
+    // Apply optimistic update immediately
+    setTotalXP(prev => prev + amount);
+
+    if (genres.length > 0) {
+      const earnedGenreXP = splitGenreXP(amount, genres);
+      setGenreXP(prev => applyGenreXP(prev, earnedGenreXP));
+    }
+
+    setXpHistory(prev => [
+      { id: crypto.randomUUID(), amount, source, gameTitle, timestamp: Date.now() },
+      ...prev,
+    ]);
+
+    // Send server request in background
     try {
-      await fetch("/api/xp/add", {
+      const res = await fetch("/api/xp/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -98,34 +110,39 @@ export const UserXPProvider = ({ children }: { children: ReactNode }) => {
         }),
       });
 
-      setTotalXP(prev => prev + amount);
-      if (genres.length > 0) {
-        const earnedGenreXP = splitGenreXP(amount, genres);
-        setGenreXP(prev => applyGenreXP(prev, earnedGenreXP));
-      }
 
-      setXpHistory(prev => [
-        { id: crypto.randomUUID(), amount, source, gameTitle, timestamp: Date.now() },
-        ...prev,
-      ]);
     } catch (err) {
       console.error("Error adding XP:", err);
+
+      // revert optimistic update on failure
+      setTotalXP(prev => prev - amount);
+
+      if (genres.length > 0) {
+        const earnedGenreXP = splitGenreXP(amount, genres);
+        setGenreXP(prev => {
+          const next = { ...prev };
+          for (const g in earnedGenreXP) {
+            next[g] = (next[g] ?? 0) - earnedGenreXP[g];
+            if (next[g] <= 0) delete next[g];
+          }
+          return next;
+        });
+      }
     }
   }
 
   async function markGameCompleted(game: Game) {
     if (!user || completedGameIds.has(game.id)) return;
 
+    // optimistic completion
+    setCompletedGameIds(prev => new Set(prev).add(game.id));
+
     try {
-      // send RAWG info to API, get back DB id
-      const dbGame = await fetch("/api/game/complete", {
+      await fetch("/api/game/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ rawgGame: game }),
-      }).then(r => r.json());
-
-      // store DB id
-      setCompletedGameIds(prev => new Set(prev).add(dbGame.id));
+      });
     } catch (err) {
       console.error("Error marking game completed:", err);
     }

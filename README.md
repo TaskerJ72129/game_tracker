@@ -190,10 +190,13 @@ Game Tracker was built to demonstrate the ability to design, implement, and depl
 
 ## Screenshots
 
+Home Page:
 <img width="1157" height="723" alt="image" src="https://github.com/user-attachments/assets/cbc88caa-41f1-4130-9d05-8ad2f58ed10e" />
 
-<img width="697" height="526" alt="image" src="https://github.com/user-attachments/assets/4b973ec6-a0d1-4bd7-97db-fb1761912c38" />
+Dashboard:
+<img width="744" height="582" alt="image" src="https://github.com/user-attachments/assets/d97e931d-214a-46c7-b98a-21e4f3dae14f" />
 
+Login:
 <img width="448" height="366" alt="image" src="https://github.com/user-attachments/assets/718f4e24-3e23-4443-ae0e-39f9eae48cd6" />
 
 

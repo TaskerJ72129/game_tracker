@@ -52,9 +52,9 @@ export const UserXPProvider = ({ children }: { children: ReactNode }) => {
     async function fetchData() {
       try {
         const [xpRes, genreRes, completedRes] = await Promise.all([
-          fetch(`/api/xp/total?userId=${user.id}`).then(r => r.json()),
-          fetch(`/api/xp/genre?userId=${user.id}`).then(r => r.json()),
-          fetch(`/api/game/complete?userId=${user.id}`).then(r => r.json())
+          fetch("/api/xp/total").then(r => r.json()),
+          fetch("/api/xp/genre").then(r => r.json()),
+          fetch("/api/game/complete").then(r => r.json()),
         ]);
 
         setTotalXP(xpRes.totalXP ?? 0);
@@ -79,57 +79,71 @@ export const UserXPProvider = ({ children }: { children: ReactNode }) => {
     setXpHistory([]);
   }
 
-  // OPTIMISTIC XP UPDATE
-  async function addXP({ amount, genres = [], source, gameTitle }: AddXPParams) {
+// OPTIMISTIC XP UPDATE + SERVER RECONCILIATION
+async function addXP({ amount, genres = [], source, gameTitle }: AddXPParams) {
     if (!user || amount <= 0) return;
 
-    // Apply optimistic update immediately
-    setTotalXP(prev => prev + amount);
+    // 1) optimistic update (instant UI)
+    setTotalXP((prev) => prev + amount);
 
     if (genres.length > 0) {
-      const earnedGenreXP = splitGenreXP(amount, genres);
-      setGenreXP(prev => applyGenreXP(prev, earnedGenreXP));
+        const earnedGenreXP = splitGenreXP(amount, genres);
+        setGenreXP((prev) => applyGenreXP(prev, earnedGenreXP));
     }
 
-    setXpHistory(prev => [
-      { id: crypto.randomUUID(), amount, source, gameTitle, timestamp: Date.now() },
-      ...prev,
+    setXpHistory((prev) => [
+        { id: crypto.randomUUID(), amount, source, gameTitle, timestamp: Date.now() },
+        ...prev,
     ]);
 
-    // Send server request in background
+    // 2) server request (auth-derived userId on server)
     try {
-      const res = await fetch("/api/xp/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user.id,
-          amount,
-          genres,
-          source,
-          gameTitle,
-        }),
-      });
-
-
-    } catch (err) {
-      console.error("Error adding XP:", err);
-
-      // revert optimistic update on failure
-      setTotalXP(prev => prev - amount);
-
-      if (genres.length > 0) {
-        const earnedGenreXP = splitGenreXP(amount, genres);
-        setGenreXP(prev => {
-          const next = { ...prev };
-          for (const g in earnedGenreXP) {
-            next[g] = (next[g] ?? 0) - earnedGenreXP[g];
-            if (next[g] <= 0) delete next[g];
-          }
-          return next;
+        const res = await fetch("/api/xp/add", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                amount,
+                genres,
+                source,
+                gameTitle,
+            }),
         });
-      }
+
+        if (!res.ok) {
+            throw new Error(`XP_ADD_FAILED_${res.status}`);
+        }
+
+        // 3) reconcile with server truth
+        // expects: { totalXP: number, genreXP: Record<string, number> }
+        const data: { totalXP: number; genreXP: Record<string, number> } = await res.json();
+
+        if (typeof data.totalXP === "number") {
+            setTotalXP(data.totalXP);
+        }
+
+        if (data.genreXP && typeof data.genreXP === "object") {
+            setGenreXP(data.genreXP);
+        }
+    } catch (err) {
+        console.error("Error adding XP:", err);
+
+        // 4) revert optimistic update on failure
+        setTotalXP((prev) => prev - amount);
+
+        if (genres.length > 0) {
+            const earnedGenreXP = splitGenreXP(amount, genres);
+            setGenreXP((prev) => {
+                const next = { ...prev };
+                for (const g in earnedGenreXP) {
+                    next[g] = (next[g] ?? 0) - earnedGenreXP[g];
+                    if (next[g] <= 0) delete next[g];
+                }
+                return next;
+            });
+        }
     }
-  }
+}
+
 
   async function markGameCompleted(game: Game) {
     if (!user || completedGameIds.has(game.id)) return;

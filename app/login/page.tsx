@@ -1,12 +1,11 @@
 "use client";
 
-import AuthForm from "@/components/AuthForm";
-
+import LoginForm from "@/components/loginForm";
 
 export default function LoginPage() {
-  return (
-    <main className="flex items-center justify-center relative pt-30">
-      <AuthForm />
-    </main>
-  );
+    return (
+        <main className="min-h-screen flex items-center justify-center p-6">
+            <LoginForm />
+        </main>
+    );
 }

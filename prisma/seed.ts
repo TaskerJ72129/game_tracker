@@ -11,10 +11,6 @@ async function main() {
     });
   }
 
-  await prisma.user.create({
-    data: { username: "testuser" },
-  });
-
   console.log("Seed complete");
 }
 

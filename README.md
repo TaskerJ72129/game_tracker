@@ -1,50 +1,57 @@
 # Game Tracker
 
-Game Tracker is a full-stack web application that allows users to track completed games and earn experience points (XP) through a gamified profile system. The project demonstrates modern web development practices using a production-style architecture with server-driven data, authentication, and scalable API design.
+Game Tracker is a **live, deployed full-stack web application** that tracks game completion and rewards users with experience points through a gamified progression system. The project was designed and built as a production-style application rather than a prototype, focusing on real-world architecture, secure data handling, and scalable engineering practices.
 
-This project was built as a portfolio application to showcase skills in full-stack development, modern React patterns, and backend data architecture.
-
----
-
-## Overview
-
-Game Tracker combines game discovery with a progression system inspired by RPG mechanics. Users can browse games from an external API, mark games as completed, and gain XP that contributes to overall and genre-specific levels.
-
-The application emphasizes:
-
-* Server-truth data consistency
-* Secure authentication
-* Clear separation between client and server responsibilities
-* Scalable architecture suitable for real-world deployment
+Unlike demo-only projects, Game Tracker is a real application with authentication, persistent server-side data, and a structured backend designed to reflect industry development workflows.
 
 ---
 
-## Features
+## Live Application
 
-### Game Tracking
+Game Tracker is deployed and accessible as a working web application:
 
-* Browse games using the RAWG Game Database API
-* Mark games as completed
-* Persist user progress in a PostgreSQL database
+* Real user authentication
+* Persistent database-backed progression
+* Server-driven XP calculations
+* External API integration for game discovery
 
-### XP & Leveling System
+This project demonstrates end-to-end ownership of a production-style system, from architecture design through deployment.
 
-* Earn XP when completing games
-* Genre-specific XP progression
-* Overall level progression based on configurable thresholds
-* Optimistic UI updates for responsive user experience
+---
 
-### Authentication
+## Project Overview
 
-* Supabase authentication (email/password)
-* Secure server-side user identification
-* User-specific progression tracking
+Game Tracker combines game discovery with a progression system inspired by RPG mechanics. Users browse games using an external API, mark titles as completed, and earn XP that contributes to both overall and genre-specific levels.
 
-### Dashboard
+The main engineering goal was to design a system that balances:
 
-* XP progress visualization
-* Level tracking
-* Genre-based progression display
+* Responsive client interactions
+* Secure server-truth data integrity
+* Scalable backend architecture
+
+---
+
+## Engineering Focus
+
+This project emphasizes real-world development practices rather than purely UI-driven implementation.
+
+### Server-Truth Architecture
+
+All XP calculations and progression updates are performed server-side. The database is the single source of truth, ensuring consistency across sessions and preventing client-side manipulation.
+
+### Client/Server Separation
+
+* Client components manage UI and optimistic updates.
+* API routes encapsulate business logic.
+* Database access via Prisma remains server-only to avoid security and bundling issues.
+
+### Optimistic UI with Reconciliation
+
+User actions update instantly in the UI while server responses reconcile state with authoritative data. This approach mirrors production applications where responsiveness and data integrity must coexist.
+
+### External Data Decoupling
+
+The RAWG Game Database API is used exclusively for browsing data. The application database stores only user-specific state, preventing unnecessary data duplication.
 
 ---
 
@@ -53,12 +60,12 @@ The application emphasizes:
 ### Frontend
 
 * Next.js (App Router)
-* React (Client + Server Components)
+* React (Server + Client Components)
 * Tailwind CSS
 
 ### Backend
 
-* Next.js Route Handlers (API Routes)
+* Next.js Route Handlers
 * Prisma ORM
 
 ### Database
@@ -67,9 +74,9 @@ The application emphasizes:
 
 ### Authentication
 
-* Supabase Auth
+* Supabase Auth (UUID identity)
 
-### External APIs
+### External Integration
 
 * RAWG Game Database API
 
@@ -79,19 +86,29 @@ The application emphasizes:
 
 ---
 
-## Architecture Highlights
+## Data Model Highlights
 
-This project follows several production-focused design decisions:
+Key entities include:
 
-* **Server-truth architecture:** XP and progression are calculated and persisted server-side to maintain data integrity.
-* **Separation of concerns:** Prisma and database logic remain server-only to prevent client bundling issues.
-* **Optimistic UI updates:** Client state updates immediately for responsive UX while syncing with server truth.
-* **External data decoupling:** RAWG API provides browsing data, while the application database stores only user-related state.
+* User (Supabase UID)
+* Game (external RAWG identity mapped to internal ID)
+* UserGameProgress
+* Genre
+* GenreXP
 
-Key identifier rule:
+Design rule:
 
 * `rawgId` is the canonical identifier in the UI.
-* Database `game.id` is derived from `rawgId.toString()`.
+* Database `game.id` = `rawgId.toString()` to maintain consistent identity mapping.
+
+---
+
+## Architecture Decisions
+
+* Server-calculated XP prevents client manipulation.
+* Transactional updates ensure XP and genre XP remain consistent.
+* Optimistic updates maintain responsive UX despite server validation.
+* Prisma is isolated to server code to maintain clean separation and prevent client bundling issues.
 
 ---
 
@@ -99,37 +116,23 @@ Key identifier rule:
 
 ```
 app/
-  api/
-    xp/
-    game/
-  context/
-  dashboard/
+  api/           # API routes (XP logic, game completion)
+  context/       # Auth and XP state
+  dashboard/     # Progression UI
 
 components/
 lib/
-types/
+  db/            # Server-only database logic
+  supabase/
+  xp/
+
 prisma/
+types/
 ```
-
-Main areas:
-
-* `app/api` — API routes handling XP logic and game completion
-* `lib/db` — Server-side database access and business logic
-* `context` — Client state management (XP and authentication)
-* `components` — Reusable UI components
 
 ---
 
-## Getting Started
-
-### Prerequisites
-
-* Node.js
-* npm
-* Supabase project
-* RAWG API key
-
-### Installation
+## Running Locally
 
 ```
 npm install
@@ -147,8 +150,6 @@ npx prisma migrate dev
 
 ## Environment Variables
 
-Create a `.env` file:
-
 ```
 DATABASE_URL=postgresql://...
 NEXT_PUBLIC_SUPABASE_URL=
@@ -156,38 +157,32 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 RAWG_API_KEY=
 ```
 
-Notes:
-
-* Local development may use relaxed SSL settings.
-* Production deployment should enforce SSL verification.
-
 ---
 
-## Key Concepts Demonstrated
+## Key Skills Demonstrated
 
-* Full-stack TypeScript architecture
-* Secure auth integration with Supabase
+* Full-stack application architecture
+* Secure authentication integration
 * API-driven server state management
-* Database modeling with Prisma
+* Database schema design with relational modeling
 * Optimistic UI patterns
-* Next.js App Router architecture
+* Production deployment workflow
 
 ---
 
 ## Future Improvements
 
-* Game search and filtering enhancements
-* Level-up animations and enhanced UI feedback
-* XP history persistence
+* Enhanced search and filtering
+* XP history tracking
 * Automated testing
-* Improved error handling and loading states
-* Role-based security with Supabase RLS
+* Advanced progression mechanics
+* Improved UI animation and feedback
 
 ---
 
 ## Purpose
 
-This project was created as a personal portfolio application to demonstrate practical full-stack engineering skills, including system design, API architecture, and user-focused interactive features.
+Game Tracker was built to demonstrate the ability to design, implement, and deploy a real-world full-stack application using modern tools and industry-aligned architectural patterns.
 
 ---
 

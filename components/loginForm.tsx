@@ -12,6 +12,27 @@ export default function LoginForm() {
 
     const router = useRouter();
 
+    async function demoLogin() {
+        setLoading(true);
+        setError(null);
+
+        const { error } = await supabase.auth.signInWithPassword({
+            email: process.env.NEXT_PUBLIC_DEMO_EMAIL!,
+            password: process.env.NEXT_PUBLIC_DEMO_PASSWORD!,
+        });
+
+        if (error) {
+            setLoading(false);
+            setError(error.message);
+            return;
+        }
+
+        await fetch("/api/user/ensure", { method: "POST" });
+
+        router.push("/");
+        router.refresh();
+    }
+
     async function signIn() {
         setLoading(true);
         setError(null);
@@ -87,6 +108,14 @@ export default function LoginForm() {
                 className="w-full bg-emerald-600 text-black py-2 rounded disabled:opacity-60"
             >
                 {loading ? "Signing in..." : "Sign In"}
+            </button>
+
+            <button
+                onClick={demoLogin}
+                disabled={loading}
+                className="w-full bg-emerald-600 text-black py-2 rounded disabled:opacity-60"
+            >
+                Try Demo Account, explore instantly
             </button>
 
             <p className="text-sm text-zinc-400">
